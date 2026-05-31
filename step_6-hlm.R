@@ -107,14 +107,6 @@ m2s <- lmer(corsi ~ time * condition2 * grade + (1 | id) +
               ed_level, data = hlm_long, REML = TRUE)
 summary(m2s)
 
-# Refit m1, 2 and 2s without reml to be compared:
-uncond_cbtt <- lmer(corsi ~ time + (1 | id), data = hlm_long, 
-                           REML = F)
-interact_cbtt <- lmer(corsi ~ time * condition2 * grade + (1 | id),
-                      data = hlm_long, REML = F)
-sensitiv_cbtt <- lmer(corsi ~ time * condition2 * grade + (1 | id) + 
-                        ed_level, data = hlm_long, REML = F)
-
 anova(uncond_cbtt, interact_cbtt, sensitiv_cbtt)
 
 coef_test(m2, vcov = "CR1", cluster = hlm_long$cond_grade2)
