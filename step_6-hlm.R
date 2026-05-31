@@ -87,7 +87,12 @@ icc(xcnull_corsi)
 icc(xcnull_corsi, by_group = TRUE)
 
 # Model specification
+# Unconditional growth model:
 m1 <- lmer(corsi ~ time + (1 | id), data = hlm_long, REML = TRUE)
+summary(m1)
+
+m1.2 <- lmer(corsi ~ time + (time | id), data = hlm_long, REML = TRUE)
+# Not identifiable
 
 m2 <- lmer(corsi ~ time * condition2 * grade + (1 | id),
            data = hlm_long, REML = TRUE)
@@ -101,7 +106,28 @@ summary(m3) # Negative Eigenvalue
 m2s <- lmer(corsi ~ time * condition2 * grade + (1 | id) + 
               ed_level, data = hlm_long, REML = TRUE)
 summary(m2s)
-summary(m2)
+
+# Refit m1, 2 and 2s without reml to be compared:
+uncond_cbtt <- lmer(corsi ~ time + (1 | id), data = hlm_long, 
+                           REML = F)
+interact_cbtt <- lmer(corsi ~ time * condition2 * grade + (1 | id),
+                      data = hlm_long, REML = F)
+sensitiv_cbtt <- lmer(corsi ~ time * condition2 * grade + (1 | id) + 
+                        ed_level, data = hlm_long, REML = F)
+
+anova(uncond_cbtt, interact_cbtt, sensitiv_cbtt)
+
+coef_test(m2, vcov = "CR1", cluster = hlm_long$cond_grade2)
+r2(m2)
+
+# Proportion of between-person variance explained by fixed effects
+(8.512 - 3.561) / 8.512
+
+# Kindergarten as a reference:
+m2_k <- lmer(corsi ~ time * condition2 * grade + (1 | id),
+             data = hlm_long %>% mutate(grade = relevel(grade, ref = "kinder")),
+             REML = TRUE)
+summary(m2_k)
 
 # ---- HLM for H&F ----
 
