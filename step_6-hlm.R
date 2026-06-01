@@ -9,6 +9,13 @@ library(clubSandwich)
 library(tidyr)
 select <- dplyr::select
 
+# To run this analysis, it is necessary to have run scripts from 
+# step_1 to step_3-descriptive_analysis, and have saved the objects
+# to the .csv format. Additionally, be certain to have run the line
+# select <- dplyr::select as, if you have loaded the car package in 
+# the previous script (step_5), the select method will be masked.
+
+# ---- Load and factor data ----
 res_analysis <- read.csv("data-clean/res_analysis.csv")
 
 res_analysis <- res_analysis <- res_analysis %>%
@@ -122,21 +129,192 @@ m2_k <- lmer(corsi ~ time * condition2 * grade + (1 | id),
 summary(m2_k)
 
 # ---- HLM for H&F ----
+null_hnf <- lmer(hnf ~ 1 + (1 | id), 
+                   data = hlm_long, REML = TRUE)
+summary(null_hnf)
 
+icc(null_hnf)
 
+# Cross-classified by classroom
+xcnull_hnf <- lmer(hnf ~ 1 + (1 | id) + (1 | cond_grade2),
+                     data = hlm_long, REML = TRUE)
+summary(xcnull_hnf)
+icc(xcnull_hnf)
+icc(xcnull_hnf, by_group = TRUE)
+
+# Model specification
+# Unconditional growth model:
+m1_hnf <- lmer(hnf ~ time + (1 | id), data = hlm_long, REML = TRUE)
+summary(m1_hnf)
+
+m2_hnf <- lmer(hnf ~ time * condition2 * grade + (1 | id),
+           data = hlm_long, REML = TRUE)
+summary(m2_hnf)
+
+m3_hnf <- lmer(hnf ~ time * condition2 * grade + (1 | id) + 
+                 (1 | cond_grade2), data = hlm_long, REML = TRUE)
+summary(m3_hnf) # Negative Eigenvalue
+
+m2s_hnf <- lmer(hnf ~ time * condition2 * grade + (1 | id) + 
+              ed_level, data = hlm_long, REML = TRUE)
+summary(m2s_hnf)
+
+anova(m1_hnf, m2_hnf, m2s_hnf)
+
+coef_test(m2_hnf, vcov = "CR1", cluster = hlm_long$cond_grade2)
+coef_test(m2s_hnf, vcov = "CR1", cluster = hlm_long$cond_grade2)
+r2(m2_hnf)
+r2(m2s_hnf)
+
+# Proportion of between-person variance explained by fixed effects
+#(8.512 - 3.561) / 8.512
+
+# Kindergarten as a reference:
+m2_hnfk <- lmer(hnf ~ time * condition2 * grade + (1 | id),
+             data = hlm_long %>% mutate(grade = relevel(grade, ref = "kinder")),
+             REML = TRUE)
+summary(m2_hnfk)
 
 # ---- HLM for DCCS ----
+null_dccs <- lmer(dccs ~ 1 + (1 | id), 
+                 data = hlm_long, REML = TRUE)
+summary(null_dccs)
 
+icc(null_dccs)
 
+# Cross-classified by classroom
+xcnull_dccs <- lmer(dccs ~ 1 + (1 | id) + (1 | cond_grade2),
+                   data = hlm_long, REML = TRUE)
+summary(xcnull_dccs)
+icc(xcnull_dccs)
+icc(xcnull_dccs, by_group = TRUE)
+
+# Model specification
+# Unconditional growth model:
+m1_dccs <- lmer(dccs ~ time + (1 | id), data = hlm_long, REML = TRUE)
+summary(m1_dccs)
+
+m2_dccs <- lmer(dccs ~ time * condition2 * grade + (1 | id),
+               data = hlm_long, REML = TRUE)
+summary(m2_hnf)
+
+m3_dccs <- lmer(dccs ~ time * condition2 * grade + (1 | id) + 
+                 (1 | cond_grade2), data = hlm_long, REML = TRUE)
+summary(m3_dccs) # Negative Eigenvalue
+
+m2s_dccs <- lmer(dccs ~ time * condition2 * grade + (1 | id) + 
+                  ed_level, data = hlm_long, REML = TRUE)
+summary(m2s_dccs)
+
+anova(m1_dccs, m2_dccs, m2s_dccs)
+
+coef_test(m2_dccs, vcov = "CR1", cluster = hlm_long$cond_grade2)
+coef_test(m2s_dccs, vcov = "CR1", cluster = hlm_long$cond_grade2)
+r2(m2_dccs)
+r2(m2s_dccs)
+
+# Proportion of between-person variance explained by fixed effects
+#(8.512 - 3.561) / 8.512
+
+# Kindergarten as a reference:
+m2_dccsk <- lmer(hnf ~ time * condition2 * grade + (1 | id),
+                data = hlm_long %>% mutate(grade = relevel(grade, ref = "kinder")),
+                REML = TRUE)
+summary(m2_dccsk)
 
 # ---- HLM for Woodcock ----
+null_wdck <- lmer(woodcock ~ 1 + (1 | id), 
+                  data = hlm_long, REML = TRUE)
+summary(null_wdck)
 
+icc(null_wdck)
 
+# Cross-classified by classroom
+xcnull_wdck <- lmer(woodcock ~ 1 + (1 | id) + (1 | cond_grade2),
+                    data = hlm_long, REML = TRUE)
+summary(xcnull_wdck)
+icc(xcnull_wdck)
+icc(xcnull_wdck, by_group = TRUE)
+
+# Model specification
+# Unconditional growth model:
+m1_wdck <- lmer(woodcock ~ time + (1 | id), data = hlm_long, REML = TRUE)
+summary(m1_wdck)
+
+m2_wdck <- lmer(woodcock ~ time * condition2 * grade + (1 | id),
+                data = hlm_long, REML = TRUE)
+summary(m2_wdck)
+
+m3_wdck <- lmer(woodcock ~ time * condition2 * grade + (1 | id) + 
+                  (1 | cond_grade2), data = hlm_long, REML = TRUE)
+summary(m3_wdck) # Negative Eigenvalue
+
+m2s_wdck <- lmer(woodcock ~ time * condition2 * grade + (1 | id) + 
+                   ed_level, data = hlm_long, REML = TRUE)
+summary(m2s_wdck)
+
+anova(m1_wdck, m2_wdck, m2s_wdck)
+
+coef_test(m2_wdck, vcov = "CR1", cluster = hlm_long$cond_grade2)
+coef_test(m2s_wdck, vcov = "CR1", cluster = hlm_long$cond_grade2)
+r2(m2_wdck)
+r2(m2s_wdck)
+
+# Proportion of between-person variance explained by fixed effects
+#(8.512 - 3.561) / 8.512
+
+# Kindergarten as a reference:
+m2_wdckk <- lmer(woodcock ~ time * condition2 * grade + (1 | id),
+                 data = hlm_long %>% mutate(grade = relevel(grade, ref = "kinder")),
+                 REML = TRUE)
+summary(m2_wdckk)
 
 # ---- HLM for TejasLee ----
+null_tejas <- lmer(tejas ~ 1 + (1 | id), 
+                  data = hlm_long, REML = TRUE)
+summary(null_tejas)
 
+icc(null_tejas)
 
+# Cross-classified by classroom
+xcnull_tejas <- lmer(tejas ~ 1 + (1 | id) + (1 | cond_grade2),
+                    data = hlm_long, REML = TRUE)
+summary(xcnull_tejas)
+icc(xcnull_tejas)
+icc(xcnull_tejas, by_group = TRUE)
 
+# Model specification
+# Unconditional growth model:
+m1_tejas <- lmer(tejas ~ time + (1 | id), data = hlm_long, REML = TRUE)
+summary(m1_tejas)
+
+m2_tejas <- lmer(tejas ~ time * condition2 * grade + (1 | id),
+                data = hlm_long, REML = TRUE)
+summary(m2_tejas)
+
+m3_tejas <- lmer(tejas ~ time * condition2 * grade + (1 | id) + 
+                  (1 | cond_grade2), data = hlm_long, REML = TRUE)
+summary(m3_tejas) # Negative Eigenvalue
+
+m2s_tejas <- lmer(tejas ~ time * condition2 * grade + (1 | id) + 
+                   ed_level, data = hlm_long, REML = TRUE)
+summary(m2s_tejas)
+
+anova(m1_tejas, m2_tejas, m2s_tejas)
+
+coef_test(m2_tejas, vcov = "CR1", cluster = hlm_long$cond_grade2)
+coef_test(m2s_tejas, vcov = "CR1", cluster = hlm_long$cond_grade2)
+r2(m2_tejas)
+r2(m2s_tejas)
+
+# Proportion of between-person variance explained by fixed effects
+#(8.512 - 3.561) / 8.512
+
+# Kindergarten as a reference:
+m2_tejask <- lmer(tejas ~ time * condition2 * grade + (1 | id),
+                 data = hlm_long %>% mutate(grade = relevel(grade, ref = "kinder")),
+                 REML = TRUE)
+summary(m2_tejask)
 
 # ---- Plots ----
 
