@@ -129,8 +129,7 @@ m2_k <- lmer(corsi ~ time * condition2 * grade + (1 | id),
 summary(m2_k)
 
 # ---- HLM for H&F ----
-null_hnf <- lmer(hnf ~ 1 + (1 | id), 
-                   data = hlm_long, REML = TRUE)
+null_hnf <- lmer(hnf ~ 1 + (1 | id), data = hlm_long, REML = TRUE)
 summary(null_hnf)
 
 icc(null_hnf)
@@ -321,5 +320,6 @@ summary(m2_tejask)
 
 
 # ---- Save data/data frames ----
-save.image(file = "rdata_files/hlm_31_5.RData")
+save.image(file = "rdata_files/hlm_1_6.RData")
 write.csv(hlm_long, file = "data-clean/hlm_long.csv", row.names = F)
+
