@@ -166,7 +166,9 @@ r2(m2_hnf)
 r2(m2s_hnf)
 
 # Proportion of between-person variance explained by fixed effects
-#(8.512 - 3.561) / 8.512
+var_null <- as.numeric(VarCorr(null_hnf)$id)
+var_m2   <- as.numeric(VarCorr(m2_hnf)$id)
+(var_null - var_m2) / var_null
 
 # Kindergarten as a reference:
 m2_hnfk <- lmer(hnf ~ time * condition2 * grade + (1 | id),
@@ -195,7 +197,7 @@ summary(m1_dccs)
 
 m2_dccs <- lmer(dccs ~ time * condition2 * grade + (1 | id),
                data = hlm_long, REML = TRUE)
-summary(m2_hnf)
+summary(m2_dccs)
 
 m3_dccs <- lmer(dccs ~ time * condition2 * grade + (1 | id) + 
                  (1 | cond_grade2), data = hlm_long, REML = TRUE)
@@ -208,15 +210,15 @@ summary(m2s_dccs)
 anova(m1_dccs, m2_dccs, m2s_dccs)
 
 coef_test(m2_dccs, vcov = "CR1", cluster = hlm_long$cond_grade2)
-coef_test(m2s_dccs, vcov = "CR1", cluster = hlm_long$cond_grade2)
 r2(m2_dccs)
-r2(m2s_dccs)
 
 # Proportion of between-person variance explained by fixed effects
-#(8.512 - 3.561) / 8.512
+var_null <- as.numeric(VarCorr(null_dccs)$id)
+var_m2   <- as.numeric(VarCorr(m2_dccs)$id)
+(var_null - var_m2) / var_null
 
 # Kindergarten as a reference:
-m2_dccsk <- lmer(hnf ~ time * condition2 * grade + (1 | id),
+m2_dccsk <- lmer(dccs ~ time * condition2 * grade + (1 | id),
                 data = hlm_long %>% mutate(grade = relevel(grade, ref = "kinder")),
                 REML = TRUE)
 summary(m2_dccsk)
@@ -259,8 +261,6 @@ coef_test(m2s_wdck, vcov = "CR1", cluster = hlm_long$cond_grade2)
 r2(m2_wdck)
 r2(m2s_wdck)
 
-# Proportion of between-person variance explained by fixed effects
-#(8.512 - 3.561) / 8.512
 
 # Kindergarten as a reference:
 m2_wdckk <- lmer(woodcock ~ time * condition2 * grade + (1 | id),
