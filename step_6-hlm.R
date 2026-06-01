@@ -77,6 +77,10 @@ hlm_long <- hlm_long %>%
          woodcock = precalc_puntaje_total,
          tejas = tejas_puntaje_total)
 
+# Center education level variable to make intercept more interpretable
+hlm_long <- hlm_long %>%
+  mutate(ed_level_c = ed_level - 1)
+
 str(hlm_long)
 
 # ---- HLM for Corsi Measure ----
@@ -111,7 +115,8 @@ summary(m2)
 summary(m3) # Negative Eigenvalue
 
 m2s <- lmer(corsi ~ time * condition2 * grade + (1 | id) + 
-              ed_level, data = hlm_long, REML = TRUE)
+            ed_level_c + time:ed_level_c, data = hlm_long, 
+            REML = TRUE)
 summary(m2s)
 
 anova(uncond_cbtt, interact_cbtt, sensitiv_cbtt)
@@ -154,11 +159,17 @@ m3_hnf <- lmer(hnf ~ time * condition2 * grade + (1 | id) +
                  (1 | cond_grade2), data = hlm_long, REML = TRUE)
 summary(m3_hnf) # Negative Eigenvalue
 
-m2s_hnf <- lmer(hnf ~ time * condition2 * grade + (1 | id) + 
-              ed_level, data = hlm_long, REML = TRUE)
-summary(m2s_hnf)
+m2s_hnf_main <- lmer(hnf ~ time * condition2 * grade + (1 | id) + 
+                      ed_level_c, data = hlm_long, 
+                    REML = TRUE)
+summary(m2s_hnf_main)
 
-anova(m1_hnf, m2_hnf, m2s_hnf)
+m2s_hnf_mod <- lmer(hnf ~ time * condition2 * grade + (1 | id) + 
+                ed_level_c + time:ed_level_c, data = hlm_long, 
+                REML = TRUE)
+summary(m2s_hnf_mod)
+
+anova(m1_hnf, m2_hnf, m2s_hnf_main, m2s_hnf_mod)
 
 coef_test(m2_hnf, vcov = "CR1", cluster = hlm_long$cond_grade2)
 coef_test(m2s_hnf, vcov = "CR1", cluster = hlm_long$cond_grade2)
@@ -203,11 +214,16 @@ m3_dccs <- lmer(dccs ~ time * condition2 * grade + (1 | id) +
                  (1 | cond_grade2), data = hlm_long, REML = TRUE)
 summary(m3_dccs) # Negative Eigenvalue
 
-m2s_dccs <- lmer(dccs ~ time * condition2 * grade + (1 | id) + 
+m2s_dccs_main <- lmer(dccs ~ time * condition2 * grade + (1 | id) + 
                   ed_level, data = hlm_long, REML = TRUE)
-summary(m2s_dccs)
+summary(m2s_dccs_main)
 
-anova(m1_dccs, m2_dccs, m2s_dccs)
+m2s_dccs_mod <- lmer(dccs ~ time * condition2 * grade + (1 | id) + 
+                      ed_level_c + time:ed_level_c, 
+                      data = hlm_long, REML = TRUE)
+summary(m2s_dccs_mod)
+
+anova(m1_dccs, m2_dccs, m2s_dccs_main, m2s_dccs_mod)
 
 coef_test(m2_dccs, vcov = "CR1", cluster = hlm_long$cond_grade2)
 r2(m2_dccs)
@@ -248,25 +264,34 @@ summary(m2_wdck)
 
 m3_wdck <- lmer(woodcock ~ time * condition2 * grade + (1 | id) + 
                   (1 | cond_grade2), data = hlm_long, REML = TRUE)
-summary(m3_wdck) # Negative Eigenvalue
+# Negative Eigenvalue
 
-m2s_wdck <- lmer(woodcock ~ time * condition2 * grade + (1 | id) + 
-                   ed_level, data = hlm_long, REML = TRUE)
-summary(m2s_wdck)
+m2s_wdck_main <- lmer(woodcock ~ time * condition2 * grade + (1 | id) + 
+                      ed_level_c, data = hlm_long, REML = TRUE)
+summary(m2s_wdck_main)
 
-anova(m1_wdck, m2_wdck, m2s_wdck)
+m2s_wdck_mod <- lmer(woodcock ~ time * condition2 * grade + (1 | id) + 
+                     ed_level_c + time:ed_level_c, 
+                     data = hlm_long, REML = TRUE)
+summary(m2s_wdck_mod)
+
+anova(m1_wdck, m2_wdck, m2s_wdck_main, m2s_wdck_mod)
 
 coef_test(m2_wdck, vcov = "CR1", cluster = hlm_long$cond_grade2)
-coef_test(m2s_wdck, vcov = "CR1", cluster = hlm_long$cond_grade2)
+coef_test(m2s_wdck_main, vcov = "CR1", cluster = hlm_long$cond_grade2)
 r2(m2_wdck)
-r2(m2s_wdck)
-
+r2(m2s_wdck_main)
 
 # Kindergarten as a reference:
 m2_wdckk <- lmer(woodcock ~ time * condition2 * grade + (1 | id),
                  data = hlm_long %>% mutate(grade = relevel(grade, ref = "kinder")),
                  REML = TRUE)
 summary(m2_wdckk)
+
+# Proportion of between-person variance explained by fixed effects
+var_null <- as.numeric(VarCorr(null_wdck)$id)
+var_m2   <- as.numeric(VarCorr(m2_wdck)$id)
+(var_null - var_m2) / var_null
 
 # ---- HLM for TejasLee ----
 null_tejas <- lmer(tejas ~ 1 + (1 | id), 
