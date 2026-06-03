@@ -119,13 +119,16 @@ m2s <- lmer(corsi ~ time * condition2 * grade + (1 | id) +
             REML = TRUE)
 summary(m2s)
 
-anova(uncond_cbtt, interact_cbtt, sensitiv_cbtt)
+anova(m1, m2, m2s)
 
 coef_test(m2, vcov = "CR1", cluster = hlm_long$cond_grade2)
+# dfs all = 1.
 r2(m2)
 
 # Proportion of between-person variance explained by fixed effects
-(8.512 - 3.561) / 8.512
+var_null <- as.numeric(VarCorr(null_corsi)$id)
+var_m2   <- as.numeric(VarCorr(m2)$id)
+(var_null - var_m2) / var_null
 
 # Kindergarten as a reference:
 m2_k <- lmer(corsi ~ time * condition2 * grade + (1 | id),
@@ -172,9 +175,7 @@ summary(m2s_hnf_mod)
 anova(m1_hnf, m2_hnf, m2s_hnf_main, m2s_hnf_mod)
 
 coef_test(m2_hnf, vcov = "CR1", cluster = hlm_long$cond_grade2)
-coef_test(m2s_hnf, vcov = "CR1", cluster = hlm_long$cond_grade2)
 r2(m2_hnf)
-r2(m2s_hnf)
 
 # Proportion of between-person variance explained by fixed effects
 var_null <- as.numeric(VarCorr(null_hnf)$id)
