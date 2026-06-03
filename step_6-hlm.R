@@ -321,19 +321,24 @@ m3_tejas <- lmer(tejas ~ time * condition2 * grade + (1 | id) +
                   (1 | cond_grade2), data = hlm_long, REML = TRUE)
 summary(m3_tejas) # Negative Eigenvalue
 
-m2s_tejas <- lmer(tejas ~ time * condition2 * grade + (1 | id) + 
-                   ed_level, data = hlm_long, REML = TRUE)
-summary(m2s_tejas)
+m2s_tejas_main <- lmer(tejas ~ time * condition2 * grade + (1 | id) + 
+                   ed_level_c, data = hlm_long, REML = TRUE)
+summary(m2s_tejas_main)
 
-anova(m1_tejas, m2_tejas, m2s_tejas)
+m2s_tejas_mod <- lmer(tejas ~ time * condition2 * grade + (1 | id) + 
+                       ed_level_c + time:ed_level_c, 
+                     data = hlm_long, REML = TRUE)
+summary(m2s_tejas_mod)
 
-coef_test(m2_tejas, vcov = "CR1", cluster = hlm_long$cond_grade2)
-coef_test(m2s_tejas, vcov = "CR1", cluster = hlm_long$cond_grade2)
+
+anova(m1_tejas, m2_tejas, m2s_tejas_main, m2s_tejas_mod)
+
 r2(m2_tejas)
-r2(m2s_tejas)
 
 # Proportion of between-person variance explained by fixed effects
-#(8.512 - 3.561) / 8.512
+var_null <- as.numeric(VarCorr(null_tejas)$id)
+var_m2   <- as.numeric(VarCorr(m2_tejas)$id)
+(var_null - var_m2) / var_null
 
 # Kindergarten as a reference:
 m2_tejask <- lmer(tejas ~ time * condition2 * grade + (1 | id),
