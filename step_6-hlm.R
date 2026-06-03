@@ -319,7 +319,7 @@ summary(m2_tejas)
 
 m3_tejas <- lmer(tejas ~ time * condition2 * grade + (1 | id) + 
                   (1 | cond_grade2), data = hlm_long, REML = TRUE)
-summary(m3_tejas) # Negative Eigenvalue
+# Negative Eigenvalue
 
 m2s_tejas_main <- lmer(tejas ~ time * condition2 * grade + (1 | id) + 
                    ed_level_c, data = hlm_long, REML = TRUE)
