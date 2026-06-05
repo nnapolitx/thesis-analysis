@@ -99,31 +99,31 @@ icc(xcnull_corsi, by_group = TRUE)
 
 # Model specification
 # Unconditional growth model:
-m1 <- lmer(corsi ~ time + (1 | id), data = hlm_long, REML = TRUE)
-summary(m1)
+m1_corsi <- lmer(corsi ~ time + (1 | id), data = hlm_long, REML = TRUE)
+summary(m1_corsi)
 
 m1.2 <- lmer(corsi ~ time + (time | id), data = hlm_long, REML = TRUE)
 # Not identifiable
 
-m2 <- lmer(corsi ~ time * condition2 * grade + (1 | id),
+m2_corsi <- lmer(corsi ~ time * condition2 * grade + (1 | id),
            data = hlm_long, REML = TRUE)
 
-m3 <- lmer(corsi ~ time * condition2 * grade + (1 | id) + (1 | cond_grade2), 
+m3_corsi <- lmer(corsi ~ time * condition2 * grade + (1 | id) + (1 | cond_grade2), 
            data = hlm_long, REML = TRUE)
-summary(m1)
-summary(m2)
-summary(m3) # Negative Eigenvalue
+summary(m1_corsi)
+summary(m2_corsi)
+summary(m3_corsi) # Negative Eigenvalue
 
-m2s <- lmer(corsi ~ time * condition2 * grade + (1 | id) + 
-            ed_level_c + time:ed_level_c, data = hlm_long, 
-            REML = TRUE)
-summary(m2s)
+m2s_corsi <- lmer(corsi ~ time * condition2 * grade + (1 | id) + 
+                  ed_level_c + time:ed_level_c, data = hlm_long, 
+                  REML = TRUE)
+summary(m2s_corsi)
 
-anova(m1, m2, m2s)
+anova(m1_corsi, m2_corsi, m2s_corsi)
 
 coef_test(m2, vcov = "CR1", cluster = hlm_long$cond_grade2)
 # dfs all = 1.
-r2(m2)
+r2(m2_corsi)
 
 # Proportion of between-person variance explained by fixed effects
 var_null <- as.numeric(VarCorr(null_corsi)$id)
@@ -351,6 +351,7 @@ summary(m2_tejask)
 
 
 # ---- Save data/data frames ----
-save.image(file = "rdata_files/hlm_1_6.RData")
-write.csv(hlm_long, file = "data-clean/hlm_long.csv", row.names = F)
+# This may be commented out to avoid overwriting.
+# save.image(file = "rdata_files/hlm_1_6.RData")
+# write.csv(hlm_long, file = "data-clean/hlm_long.csv", row.names = F)
 
