@@ -102,17 +102,11 @@ icc(xcnull_corsi, by_group = TRUE)
 m1_corsi <- lmer(corsi ~ time + (1 | id), data = hlm_long, REML = TRUE)
 summary(m1_corsi)
 
-m1.2 <- lmer(corsi ~ time + (time | id), data = hlm_long, REML = TRUE)
-# Not identifiable
-
 m2_corsi <- lmer(corsi ~ time * condition2 * grade + (1 | id),
            data = hlm_long, REML = TRUE)
 
-m3_corsi <- lmer(corsi ~ time * condition2 * grade + (1 | id) + (1 | cond_grade2), 
-           data = hlm_long, REML = TRUE)
 summary(m1_corsi)
 summary(m2_corsi)
-summary(m3_corsi) # Negative Eigenvalue
 
 m2s_corsi <- lmer(corsi ~ time * condition2 * grade + (1 | id) + 
                   ed_level_c + time:ed_level_c, data = hlm_long, 
@@ -121,13 +115,11 @@ summary(m2s_corsi)
 
 anova(m1_corsi, m2_corsi, m2s_corsi)
 
-coef_test(m2, vcov = "CR1", cluster = hlm_long$cond_grade2)
-# dfs all = 1.
 r2(m2_corsi)
 
 # Proportion of between-person variance explained by fixed effects
 var_null <- as.numeric(VarCorr(null_corsi)$id)
-var_m2   <- as.numeric(VarCorr(m2)$id)
+var_m2   <- as.numeric(VarCorr(m2_corsi)$id)
 (var_null - var_m2) / var_null
 
 # Kindergarten as a reference:
@@ -277,11 +269,7 @@ m2s_wdck_mod <- lmer(woodcock ~ time * condition2 * grade + (1 | id) +
 summary(m2s_wdck_mod)
 
 anova(m1_wdck, m2_wdck, m2s_wdck_main, m2s_wdck_mod)
-
-coef_test(m2_wdck, vcov = "CR1", cluster = hlm_long$cond_grade2)
-coef_test(m2s_wdck_main, vcov = "CR1", cluster = hlm_long$cond_grade2)
 r2(m2_wdck)
-r2(m2s_wdck_main)
 
 # Kindergarten as a reference:
 m2_wdckk <- lmer(woodcock ~ time * condition2 * grade + (1 | id),
@@ -347,8 +335,140 @@ m2_tejask <- lmer(tejas ~ time * condition2 * grade + (1 | id),
 summary(m2_tejask)
 
 # ---- Plots ----
+# ICC decomposition bar chart
+icc_data <- data.frame(
+  outcome = rep(c("CBTT", "H&F", "DCCS", "Woodcock-Munoz", "Tejas LEE"), 3),
+  level   = rep(c("Null model", "Participant", "Classroom"), each = 5),
+  icc     = c(
+    # Null model
+    51.3, 76.2, 49.3, 78.0, 82.9,
+    # Participant
+    13.4, 16.3, 17.9, 23.0, 21.8,
+    # Classroom
+    39.5, 61.0, 32.4, 56.3, 62.1
+  )
+)
 
+icc_data$outcome <- factor(icc_data$outcome, 
+                           levels = c("CBTT", "H&F", "DCCS", 
+                                      "Woodcock-Munoz", "Tejas LEE"))
+icc_data$level <- factor(icc_data$level, 
+                         levels = c("Null model", "Participant", "Classroom"))
 
+ggplot(icc_data, aes(x = outcome, y = icc, fill = level)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.75),
+           width = 0.65, color = "white", linewidth = 0.3) +
+  scale_fill_manual(values = c("Null model"  = "#185FA5",
+                               "Participant" = "#85B7EB",
+                               "Classroom"   = "#1D9E75")) +
+  scale_y_continuous(limits = c(0, 100),
+                     breaks = seq(0, 100, 20),
+                     labels = function(x) paste0(x, "%")) +
+  labs(x = NULL, y = "ICC (%)", fill = NULL,
+       caption = "Null model ICC reflects total between-person variance.\nParticipant and classroom ICCs are from the cross-classified null model.") +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position    = "top",
+    legend.key.size    = unit(0.4, "cm"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor   = element_blank(),
+    axis.text.x        = element_text(size = 11),
+    plot.caption       = element_text(size = 9, color = "gray50",
+                                      hjust = 0)
+  )
+
+# ---- Parental education x baseline score scatter plots ----
+# Filter to pretest observations only
+res_pre <- hlm_long %>%
+  filter(time == 0)
+
+# Common theme
+ed_theme <- theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.x = element_blank(),
+    legend.position    = "top",
+    legend.key.size    = unit(0.4, "cm"),
+    axis.text.x        = element_text(size = 11),
+    plot.caption       = element_text(size = 9, color = "gray50", hjust = 0)
+  )
+
+# x-axis labels
+ed_labels <- c("0" = "Primary", "1" = "Secondary", 
+               "2" = "Vocational", "3" = "University")
+
+# ---- H&F baseline ----
+p_hnf <- ggplot(res_pre, aes(x = ed_level_c, y = hnf, 
+                             color = grade, shape = grade)) +
+  geom_jitter(width = 0.12, height = 0, alpha = 0.6, size = 2) +
+  geom_smooth(method = "lm", se = TRUE, linewidth = 0.8) +
+  scale_x_continuous(breaks = 0:3, labels = ed_labels) +
+  scale_color_manual(values = c("fifth"  = "#185FA5",
+                                "kinder" = "#1D9E75"),
+                     labels = c("fifth"  = "Fifth grade",
+                                "kinder" = "Kindergarten")) +
+  scale_shape_manual(values = c("fifth"  = 16,
+                                "kinder" = 17),
+                     labels = c("fifth"  = "Fifth grade",
+                                "kinder" = "Kindergarten")) +
+  labs(x = "Parental education level", 
+       y = "H&F baseline score",
+       color = NULL, shape = NULL,
+       caption = "β = 0.21, SE = 0.09, p = .029. Jitter added to reduce overplotting.") +
+  ed_theme
+
+# ---- Woodcock baseline ----
+p_wdck <- ggplot(res_pre, aes(x = ed_level_c, y = woodcock,
+                              color = grade, shape = grade)) +
+  geom_jitter(width = 0.12, height = 0, alpha = 0.6, size = 2) +
+  geom_smooth(method = "lm", se = TRUE, linewidth = 0.8) +
+  scale_x_continuous(breaks = 0:3, labels = ed_labels) +
+  scale_color_manual(values = c("fifth"  = "#185FA5",
+                                "kinder" = "#1D9E75"),
+                     labels = c("fifth"  = "Fifth grade",
+                                "kinder" = "Kindergarten")) +
+  scale_shape_manual(values = c("fifth"  = 16,
+                                "kinder" = 17),
+                     labels = c("fifth"  = "Fifth grade",
+                                "kinder" = "Kindergarten")) +
+  labs(x = "Parental education level",
+       y = "Woodcock-Munoz baseline score",
+       color = NULL, shape = NULL,
+       caption = "β = 1.92, SE = 0.75, p = .012. Jitter added to reduce overplotting.") +
+  ed_theme
+
+# ---- Tejas baseline ----
+p_tejas <- ggplot(res_pre, aes(x = ed_level_c, y = tejas,
+                               color = grade, shape = grade)) +
+  geom_jitter(width = 0.12, height = 0, alpha = 0.6, size = 2) +
+  geom_smooth(method = "lm", se = TRUE, linewidth = 0.8) +
+  scale_x_continuous(breaks = 0:3, labels = ed_labels) +
+  scale_color_manual(values = c("fifth"  = "#185FA5",
+                                "kinder" = "#1D9E75"),
+                     labels = c("fifth"  = "Fifth grade",
+                                "kinder" = "Kindergarten")) +
+  scale_shape_manual(values = c("fifth"  = 17,
+                                "kinder" = 17),
+                     labels = c("fifth"  = "Fifth grade",
+                                "kinder" = "Kindergarten")) +
+  labs(x = "Parental education level",
+       y = "Tejas LEE baseline score",
+       color = NULL, shape = NULL,
+       caption = "β = 2.72, SE = 0.87, p = .002. Jitter added to reduce overplotting.") +
+  ed_theme
+
+# ---- Print individually or combine ----
+print(p_hnf)
+print(p_wdck)
+print(p_tejas)
+
+# Optional: combine into one figure using patchwork
+# library(patchwork)
+# p_hnf / p_wdck / p_tejas +
+#   plot_annotation(
+#     title = "Parental education and baseline outcome scores",
+#     caption = "Lines show linear fits with 95% CI by grade level."
+#   )
 
 # ---- Save data/data frames ----
 # This may be commented out to avoid overwriting.
