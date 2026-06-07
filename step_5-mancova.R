@@ -232,21 +232,7 @@ for (i in seq_along(baseline_vars)) {
                     data = res_control_kinder))
 }
 
-# ---- Wilcoxon tests: gain scores ----
-cat("\n=== Wilcoxon tests: gain scores (kindergarten only) ===\n")
-for (i in seq_along(dvs)) {
-  cat("\n", dv_names[i], "\n")
-  print(wilcox.test(get(dvs[i]) ~ condition,
-                    data = res_control_kinder))
-}
-
-# ---- Levene's tests: variance homogeneity ----
-cat("\n=== Levene's tests: gain scores (kindergarten only) ===\n")
-for (i in seq_along(dvs)) {
-  cat("\n", dv_names[i], "\n")
-  print(leveneTest(get(dvs[i]) ~ condition,
-                   data = res_control_kinder))
-}
+# Levene's tests: variance homogeneity
 
 cat("\n=== Levene's tests: baseline scores (kindergarten only) ===\n")
 for (i in seq_along(baseline_vars)) {
