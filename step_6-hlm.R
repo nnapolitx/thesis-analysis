@@ -108,6 +108,11 @@ m2_corsi <- lmer(corsi ~ time * condition2 * grade + (1 | id),
 summary(m1_corsi)
 summary(m2_corsi)
 
+m3_corsi <- lmer(corsi ~ time * condition2 * grade + (1 | id) + (1 | cond_grade2),
+                 data = hlm_long, REML = TRUE)
+# Eigenvalue basically zero; not interpretable. Probably has to do 
+# with collinearity problem between condition and classroom.
+
 m2s_corsi <- lmer(corsi ~ time * condition2 * grade + (1 | id) + 
                   ed_level_c + time:ed_level_c, data = hlm_long, 
                   REML = TRUE)
@@ -150,9 +155,9 @@ m2_hnf <- lmer(hnf ~ time * condition2 * grade + (1 | id),
            data = hlm_long, REML = TRUE)
 summary(m2_hnf)
 
-m3_hnf <- lmer(hnf ~ time * condition2 * grade + (1 | id) + 
-                 (1 | cond_grade2), data = hlm_long, REML = TRUE)
-summary(m3_hnf) # Negative Eigenvalue
+# m3_hnf <- lmer(hnf ~ time * condition2 * grade + (1 | id) + 
+#                 (1 | cond_grade2), data = hlm_long, REML = TRUE)
+# summary(m3_hnf) # Negative Eigenvalue
 
 m2s_hnf_main <- lmer(hnf ~ time * condition2 * grade + (1 | id) + 
                       ed_level_c, data = hlm_long, 
@@ -166,7 +171,7 @@ summary(m2s_hnf_mod)
 
 anova(m1_hnf, m2_hnf, m2s_hnf_main, m2s_hnf_mod)
 
-coef_test(m2_hnf, vcov = "CR1", cluster = hlm_long$cond_grade2)
+# coef_test(m2_hnf, vcov = "CR1", cluster = hlm_long$cond_grade2)
 r2(m2_hnf)
 
 # Proportion of between-person variance explained by fixed effects
